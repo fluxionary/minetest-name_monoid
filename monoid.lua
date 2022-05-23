@@ -9,31 +9,52 @@ local function remove_empty(t)
 end
 
 name_monoid.monoid_def = {
-    identity = {},
-    combine = function(tag_desc1, tag_desc2)
-        if tag_desc1.hide_all or tag_desc2.hide_all then
+    identity = {
+        color = {a = 255, r = 255, g = 255, b = 255},
+        bgcolor = false,
+    },
+
+    combine = function(nametag_attributes1, nametag_attributes2)
+        if nametag_attributes1.hide_all or nametag_attributes2.hide_all then
             return {
-                tag = "",
-                hide_all = true
+                text = "",
+                color = {a = 0, r = 255, g = 255, b = 255},
+                bgcolor = {a = 0, r = 255, g = 255, b = 255},
+                hide_all = true,
+            }
+        else
+            local bgcolor
+            if nametag_attributes2.bgcolor == nil then
+                bgcolor = nametag_attributes1.bgcolor
+            else
+                bgcolor = nametag_attributes2.bgcolor
+            end
+
+            return {
+                text = table.concat(
+                    remove_empty({nametag_attributes1.text, nametag_attributes2.text}),
+                    nametag_attributes2.text_separator or name_monoid.settings.text_separator
+                ),
+                color = nametag_attributes1.color or nametag_attributes2.color,
+                bgcolor = bgcolor,
             }
         end
+    end,
 
-        return {
-            tag = table.concat(
-                remove_empty({tag_desc1.tag, tag_desc2.tag}),
-                tag_desc2.separator or name_monoid.settings.separator
-            )
-        }
-    end,
     fold = function(values)
-        local tag_desc1 = table.copy(name_monoid.monoid_def.identity)
-        for _, tag_desc2 in ipairs(values) do
-            tag_desc1 = name_monoid.monoid_def.combine(tag_desc1, tag_desc2)
+        local nametag_attributes1 = table.copy(name_monoid.monoid_def.identity)
+        for _, nametag_attributes2 in pairs(values) do
+            nametag_attributes1 = name_monoid.monoid_def.combine(nametag_attributes1, nametag_attributes2)
         end
-        return tag_desc1
+        return nametag_attributes1
     end,
-    apply = function(tag_desc, player)
-        player:set_nametag_attributes({text=tag_desc.tag})
+
+    apply = function(nametag_attributes, player)
+        player:set_nametag_attributes({
+            text = nametag_attributes.text,
+            color = nametag_attributes.color,
+            bgcolor = nametag_attributes.bgcolor or false,
+        })
     end,
 }
 

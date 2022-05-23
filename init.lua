@@ -23,3 +23,9 @@ name_monoid = {
 
 name_monoid.dofile("settings")
 name_monoid.dofile("monoid")
+
+if name_monoid.settings.show_name then
+    minetest.register_on_joinplayer(function(player)
+        name_monoid.monoid:add_change(player, {text = player:get_player_name()}, "name_monoid")
+    end)
+end
