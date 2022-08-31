@@ -1,12 +1,5 @@
-local function remove_empty(t)
-    local t2 = {}
-    for _, v in pairs(t) do
-        if v then
-            table.insert(t2, v)
-        end
-    end
-    return t2
-end
+local component_separator = name_monoid.settings.component_separator
+local invert_composition = name_monoid.settings.invert_composition
 
 name_monoid.monoid_def = {
     identity = {
@@ -19,42 +12,83 @@ name_monoid.monoid_def = {
             return {
                 hide_all = true,
             }
-        else
-            if name_monoid.settings.invert_composition then
-                local bgcolor
-                if nametag_attributes1.bgcolor == nil then
-                    bgcolor = nametag_attributes2.bgcolor
-                else
-                    bgcolor = nametag_attributes1.bgcolor
-                end
 
-                return {
-                    text = table.concat(
-                        remove_empty({nametag_attributes2.text, nametag_attributes1.text}),
-                        nametag_attributes2.text_separator or name_monoid.settings.text_separator
-                    ),
-                    color = nametag_attributes1.color or nametag_attributes2.color,
-                    bgcolor = bgcolor,
-                }
+        end
 
+        local bgcolor, color, texts
+
+        if invert_composition then
+            if nametag_attributes1.bgcolor == nil then
+                bgcolor = nametag_attributes2.bgcolor
             else
-                local bgcolor
-                if nametag_attributes2.bgcolor == nil then
-                    bgcolor = nametag_attributes1.bgcolor
-                else
-                    bgcolor = nametag_attributes2.bgcolor
-                end
+                bgcolor = nametag_attributes1.bgcolor
+            end
 
-                return {
-                    text = table.concat(
-                        remove_empty({nametag_attributes1.text, nametag_attributes2.text}),
-                        nametag_attributes2.text_separator or name_monoid.settings.text_separator
-                    ),
-                    color = nametag_attributes2.color or nametag_attributes1.color,
-                    bgcolor = bgcolor,
-                }
+            color = nametag_attributes1.color or nametag_attributes2.color
+
+        else
+            if nametag_attributes2.bgcolor == nil then
+                bgcolor = nametag_attributes1.bgcolor
+            else
+                bgcolor = nametag_attributes2.bgcolor
+            end
+
+            color = nametag_attributes2.color or nametag_attributes1.color
+        end
+
+        if nametag_attributes2._texts then
+            texts = nametag_attributes2._texts
+
+            if nametag_attributes1._texts then
+                table.insert_all(texts, nametag_attributes1._texts)
+
+            elseif nametag_attributes1.text then
+               table.insert(texts, {
+                   text = nametag_attributes1.text,
+                   text_separator = nametag_attributes1.text_separator,
+                   order = nametag_attributes1.order
+               })
+            end
+
+        elseif nametag_attributes1._texts then
+            texts = nametag_attributes1._texts
+
+            if nametag_attributes2._texts then
+                table.insert_all(texts, nametag_attributes2._texts)
+
+            elseif nametag_attributes2.text then
+               table.insert(texts, {
+                   text = nametag_attributes2.text,
+                   text_separator = nametag_attributes2.text_separator,
+                   order = nametag_attributes2.order
+               })
+            end
+
+        else
+            texts = {}
+
+            if nametag_attributes1.text then
+               table.insert(texts, {
+                   text = nametag_attributes1.text,
+                   text_separator = nametag_attributes1.text_separator,
+                   order = nametag_attributes1.order
+               })
+            end
+
+            if nametag_attributes2.text then
+               table.insert(texts, {
+                   text = nametag_attributes2.text,
+                   text_separator = nametag_attributes2.text_separator,
+                   order = nametag_attributes2.order
+               })
             end
         end
+
+        return {
+            bgcolor = bgcolor,
+            color = color,
+            _texts = texts
+        }
     end,
 
     fold = function(values)
@@ -74,8 +108,56 @@ name_monoid.monoid_def = {
             })
 
         else
+            local text
+            if nametag_attributes._texts then
+                local texts = nametag_attributes._texts
+                if invert_composition then
+                    table.sort(texts, function(a, b)
+                        if a.order and b.order then
+                            return b.order < a.order
+
+                        elseif b.order then
+                            return true
+
+                        elseif a.order then
+                            return false
+                        end
+
+                        return false
+                    end)
+
+                else
+                    table.sort(texts, function(a, b)
+                        if a.order and b.order then
+                            return a.order < b.order
+
+                        elseif a.order then
+                            return true
+
+                        elseif b.order then
+                            return false
+                        end
+
+                        return true
+                    end)
+                end
+
+                local parts = {}
+                for i = 1, #texts do
+                    table.insert(parts, texts[i].text)
+                    if i < #texts then
+                        table.insert(parts, texts[i].text_separator or component_separator)
+                    end
+                end
+
+                text = table.concat(parts, "")
+
+            else
+                text = nametag_attributes.text
+            end
+
             player:set_nametag_attributes({
-                text = nametag_attributes.text,
+                text = text,
                 color = nametag_attributes.color,
                 bgcolor = nametag_attributes.bgcolor or false,
             })
