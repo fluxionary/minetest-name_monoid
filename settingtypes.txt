@@ -1,0 +1,8 @@
+# separator between components
+name_monoid.component_separator (component separator) string
+
+# show the player's name
+name_monoid.show_name (show name) bool true
+
+# invert the order of composition
+name_monoid.invert_composition (invert composition) bool false
