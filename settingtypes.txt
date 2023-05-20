@@ -1,8 +1,10 @@
-# separator between components
-name_monoid.component_separator (component separator) string
+# tag separator used to separate components in the name tag
+name_monoid.tag_separator (tag separator) string " "
 
-# show the player's name
+# whether to show player names above their head when they join
+# set to true to show names, false to hide names
 name_monoid.show_name (show name) bool true
 
-# invert the order of composition
+# invert composition determines the order of components in the name tag
+# set to true to invert the order, false to keep the order as defined
 name_monoid.invert_composition (invert composition) bool false

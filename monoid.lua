@@ -1,4 +1,4 @@
-local component_separator = name_monoid.settings.component_separator
+local tag_separator = name_monoid.settings.tag_separator
 local invert_composition = name_monoid.settings.invert_composition
 
 name_monoid.monoid_def = {
@@ -134,7 +134,7 @@ name_monoid.monoid_def = {
 				for i = 1, #texts do
 					table.insert(parts, texts[i].text)
 					if i < #texts then
-						table.insert(parts, texts[i].text_separator or component_separator)
+						table.insert(parts, texts[i].text_separator or tag_separator)
 					end
 				end
 
