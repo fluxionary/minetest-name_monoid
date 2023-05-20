@@ -96,7 +96,7 @@ name_monoid.monoid_def = {
 	apply = function(nametag_attributes, player)
 		if nametag_attributes.hide_all then
 			player:set_nametag_attributes({
-				text = "",
+				text = " ",
 				color = { a = 0, r = 0, g = 0, b = 0 },
 				bgcolor = { a = 0, r = 0, g = 0, b = 0 },
 			})
@@ -143,11 +143,19 @@ name_monoid.monoid_def = {
 				text = nametag_attributes.text
 			end
 
-			player:set_nametag_attributes({
-				text = text,
-				color = nametag_attributes.color,
-				bgcolor = nametag_attributes.bgcolor or false,
-			})
+			if text == "" then
+				player:set_nametag_attributes({
+					text = " ",
+					color = { a = 0, r = 0, g = 0, b = 0 },
+					bgcolor = { a = 0, r = 0, g = 0, b = 0 },
+				})
+			else
+				player:set_nametag_attributes({
+					text = text,
+					color = nametag_attributes.color,
+					bgcolor = nametag_attributes.bgcolor or false,
+				})
+			end
 		end
 	end,
 }
